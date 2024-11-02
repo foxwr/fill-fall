@@ -11,12 +11,13 @@ const gridImage = new ImageData(gridData, size, size);
 
 requestAnimationFrame(loop);
 
-// maxbittker.com/making-sandspiel
+let active = false, x, y;
+screen.onmousemove = (e) => { x = e.offsetX; y = e.offsetY }
+screen.onmousedown = (e) => { active = true; screen.onmousemove(e) }
+screen.onmouseup = (e) => { active = false }
 
-let x = 0;
 function loop() {
-  x = (x + .1) % size;
-  sandbox.placeOnGrid(~~x, 40, 1);
+  if(active) sandbox.placeOnGrid(x, y, 1);
   sandbox.updateGrid();
   gl.putImageData(gridImage, 0, 0);
   requestAnimationFrame(loop);
