@@ -20,12 +20,14 @@ EXPORT void placeOnGrid(int x, int y, int type) {
 
 EXPORT void updateGrid() {
   tick = !tick;
-  for(int y = 0; y < SIZE; y++) {
-    for(int x = 0; x < SIZE; x++) {
-      struct Cell cell = grid[y][x];
+
+  struct Coord c;
+  for(c.y = 0; c.y < SIZE; c.y++) {
+    for(c.x = 0; c.x < SIZE; c.x++) {
+      struct Cell cell = grid[c.y][c.x];
       if(cell.tick != tick && cellUpdateFnTbl[cell.type]) {
         cell.tick = tick;
-        cellUpdateFnTbl[cell.type](cell, (struct Coord) { .x = x, .y = y });
+        cellUpdateFnTbl[cell.type](cell, c);
       }
     }
   }

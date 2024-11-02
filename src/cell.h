@@ -16,7 +16,7 @@ struct Cell {
   u8 shft : 8;
   u8 reg1 : 8;
   u8 reg2 : 8;
-};
+} PACKED;
 
 extern void (*const cellUpdateFnTbl[64])(struct Cell, struct Coord);
 
