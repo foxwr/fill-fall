@@ -12,7 +12,7 @@ EXPORT void placeOnGrid(int x, int y, int type) {
   grid[y][x] = (struct Cell) {
     .type = type,
     .tick = tick,
-    .shft = rand() & 63,
+    .shft = rand() & 15,
     .reg1 = 0xFF,
     .reg2 = 0xFF
   };
@@ -24,10 +24,10 @@ EXPORT void updateGrid() {
   struct Coord c;
   for(c.y = 0; c.y < SIZE; c.y++) {
     for(c.x = 0; c.x < SIZE; c.x++) {
-      struct Cell cell = grid[c.y][c.x];
-      if(cell.tick != tick && cellUpdateFnTbl[cell.type]) {
-        cell.tick = tick;
-        cellUpdateFnTbl[cell.type](cell, c);
+      struct Cell *cell = &grid[c.y][c.x];
+      if(cell->tick != tick && cellUpdateFnTbl[cell->type]) {
+        cell->tick = tick;
+        cellUpdateFnTbl[cell->type](*cell, c);
       }
     }
   }

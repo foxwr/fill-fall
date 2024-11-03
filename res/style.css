@@ -21,10 +21,11 @@ body {
 }
 
 #screen {
-  border-radius: .2rem;
+  border-radius: .15rem;
   background: black;
   image-rendering: pixelated;
   box-shadow: 0 0 .5rem #00000040;
 
+  cursor: pointer;
   scale: 4;
 }
