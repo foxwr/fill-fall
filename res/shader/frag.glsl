@@ -1,17 +1,31 @@
 #version 300 es
+
 precision lowp usampler2D;
 precision mediump float;
 
 in vec2 uv;
-uniform usampler2D tex;
 out vec4 frag;
 
+uniform uint ticks;
+uniform usampler2D grid;
+uniform sampler2D base;
+
 void main() {
-  float type = float(texture(tex, uv).r & 63u);
-  float var = float(texture(tex, uv).g & 15u) / 15.0;
+  uint type = texture(grid, uv).r & 63u;
+  if(type == 0u) discard;
 
-  vec4 base = vec4(0.85, 0.70, 0.40, 1.00);
-  float lum = var * 0.2 + 0.9;
+  uint isLiquid = (type >> 4) & 1u;
 
-  frag = base * lum * type;
+  uint md = texture(grid, uv).g + (ticks + uint(uv.y * 43.0 + uv.x * 103.0)) * isLiquid;
+  if((md & 16u) == 16u) md = ~md;
+
+  float x = float(type & 15u) / 16.0;
+  float y = float(type >> 4) / 4.0;
+
+  float var = float(md & 15u) / 15.0;
+
+  vec4 b = texture(base, vec2(x, y));
+  float lum = var * 0.10 + 0.95;
+
+  frag = b * lum;
 }

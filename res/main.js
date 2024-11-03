@@ -44,9 +44,24 @@ const posLoc = gl.getAttribLocation(program, "pos");
 gl.enableVertexAttribArray(posLoc);
 gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
+const base = new Image();
+base.src = "res/base.png";
+await new Promise(r => base.onload = r)
 
+const baseTex = gl.createTexture();
+gl.activeTexture(gl.TEXTURE0);
+gl.bindTexture(gl.TEXTURE_2D, baseTex);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 16, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, base);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+const baseLoc = gl.getUniformLocation(program, "base");
+gl.uniform1i(baseLoc, 0);
 
 const texture = gl.createTexture();
+gl.activeTexture(gl.TEXTURE1);
 gl.bindTexture(gl.TEXTURE_2D, texture);
 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8UI, size, size, 0, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, null);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -54,8 +69,10 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-const texLoc = gl.getUniformLocation(program, 'tex');
-gl.uniform1i(texLoc, 0);
+const gridLoc = gl.getUniformLocation(program, "grid");
+gl.uniform1i(gridLoc, 1);
+
+const ticksLoc = gl.getUniformLocation(program, "ticks");
 
 gl.viewport(0, 0, screen.width, screen.height);
 
@@ -73,14 +90,18 @@ function onmouse(e) {
   y = e.offsetY;
 }
 
+let ticks = 0;
 let dx, dy = 0;
 function loop() {
+  ticks = (ticks + 1) % 256;
+  gl.uniform1ui(ticksLoc, ticks / 4);
+
   if(dy == 0) {
     dy = 10;
     dx = ~~(Math.random() * size); 
   }
-  sandbox.placeOnGrid(dx, 0, 1); dy--;
-  if(active) sandbox.placeOnGrid(x, y, 1);
+  sandbox.placeOnGrid(dx, 0, 16); dy--;
+  if(active) sandbox.placeOnGrid(x, y, 32);
   sandbox.updateGrid();
 }
 
