@@ -4,7 +4,7 @@ precision lowp usampler2D;
 precision mediump float;
 
 in vec2 uv;
-out vec4 frag;
+out vec4 fragColor;
 
 uniform uint ticks;
 uniform usampler2D grid;
@@ -27,5 +27,5 @@ void main() {
   vec4 b = texture(base, vec2(x, y));
   float lum = var * 0.10 + 0.95;
 
-  frag = b * lum;
+  fragColor = b * lum;
 }

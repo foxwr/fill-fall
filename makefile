@@ -1,2 +1,3 @@
 all:
-	clang -O3 -s -fno-builtin --target=wasm32 -nostdlib -Wl,--no-entry,--export-dynamic -fvisibility=hidden -fno-pic -o res/sandbox.wasm src/*.c
+	clang -flto -O3 -s -fno-builtin --target=wasm32 -nostdlib -Wl,--no-entry,--export-dynamic -fvisibility=hidden -fno-pic -o res/sandbox.wasm src/*.c
+	wasm-opt -O4 res/sandbox.wasm -o res/sandbox.wasm
