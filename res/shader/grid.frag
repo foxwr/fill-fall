@@ -14,9 +14,9 @@ void main() {
   uint type = texture(grid, uv).r & 63u;
   if(type == 0u) discard;
 
-  uint isLiquid = (type >> 4) & 1u;
+  uint isLiquid = uint(((type >> 4) & 3u) == 1u);
 
-  uint md = texture(grid, uv).g + (ticks + uint(uv.y * 43.0 + uv.x * 103.0)) * isLiquid;
+  uint md = texture(grid, uv).g + (ticks / 8u + uint(uv.y * 12.0 + uv.x * 24.0)) * isLiquid;
   if((md & 16u) == 16u) md = ~md;
 
   float x = float(type & 15u) / 16.0;

@@ -16,6 +16,6 @@ typedef __INT32_TYPE__  i32;
 typedef __INT64_TYPE__  i64;
 typedef __INTPTR_TYPE__ iptr;
 
-struct Coord { u16 x, y; } PACKED;
+struct Coord { u32 x, y; } PACKED;
 
 #endif
