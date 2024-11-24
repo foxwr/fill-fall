@@ -11,6 +11,9 @@ const gridData = new Uint8Array(sandbox.memory.buffer, sandbox.grid, 4 * size * 
 
 const program = await createProgram("res/shader/grid");
 
+let scale = 1;
+(onresize = () => scale = size / screen.clientHeight)();
+
 async function createProgram(shPath) {
   const [vsrc, fsrc] = await Promise.all([
     fetch(`${shPath}.vert`).then(v => v.text()),
@@ -90,44 +93,82 @@ function createTex(unif, activeTex, ifmt, fmt, width, height, data) {
 const ticksLoc = gl.getUniformLocation(program, "ticks");
 
 requestAnimationFrame(draw);
-setInterval(loop, 10);
+
+setInterval(loop, 8);
+let paused = false;
+
+const menu = document.querySelector(".menu");
+menu.querySelector(".pause").onclick = pause;
+menu.querySelector(".reset").onclick = reset;
+
+function pause(e) {
+  paused = !paused;
+  if(paused) e.target.classList.add("selected");
+  else e.target.classList.remove("selected");
+}
+
+function reset() {
+  gridData.fill(0);
+}
 
 let active, x, y;
 screen.onmousemove = onmouse;
 screen.onmousedown = onmouse;
 screen.onmouseup = onmouse;
+screen.onmouseout = onmouse;
+
+const picker = document.querySelector(".picker");
+let cellType = parseInt(picker.querySelector(".selected").getAttribute("data-p"));
+picker.querySelectorAll(`[data-p]`).forEach(e => e.onclick = () => {
+  cellType = parseInt(e.getAttribute("data-p"));
+  picker.querySelector(`.selected`).classList.remove("selected");
+  e.classList.add("selected");
+  e.blur();
+});
 
 function onmouse(e) {
+  let wasActive = active;
   active = e.buttons & 1;
-  x = e.offsetX;
-  y = e.offsetY;
+
+  let ox = x;
+  let oy = y;
+
+  x = e.offsetX * scale;
+  y = e.offsetY * scale;
+
+  if(!wasActive || !active) return;
+  
+  let dx = x - ox;
+  let dy = y - oy;
+  let steps = Math.floor(Math.sqrt(dx*dx + dy*dy))
+
+  for(let i = 1; i < steps; i++) {
+    let x = ox + dx / steps * i;
+    let y = oy + dy / steps * i;
+
+    if(active) {
+      sandbox.placeOnGrid(x  , y  , cellType);
+      sandbox.placeOnGrid(x+1, y  , cellType);
+      sandbox.placeOnGrid(x  , y+1, cellType);
+      sandbox.placeOnGrid(x+1, y+1, cellType);
+    }
+  }
 }
 
 let ticks = 0;
-let dx, dy = 0;
 function loop() {
-  ticks = (ticks + 1) % 256;
-  gl.uniform1ui(ticksLoc, ticks / 4);
-
-  if(dy == 0) {
-    dy = 10;
-    dx = ~~(Math.random() * size); 
-  }
-
-  if(dy-- % 2)
-    sandbox.placeOnGrid(dx, 0, 16);
-  else
-  sandbox.placeOnGrid(~~(dx + size/2) % size, 0, 16);
-
   if(active) {
-    sandbox.placeOnGrid(x-1, y  , 32);
-    sandbox.placeOnGrid(x  , y-1, 32);
-    sandbox.placeOnGrid(x  , y  , 32);
-    sandbox.placeOnGrid(x+1, y  , 32);
-    sandbox.placeOnGrid(x  , y+1, 32);
+    sandbox.placeOnGrid(x  , y  , cellType);
+    sandbox.placeOnGrid(x+1, y  , cellType);
+    sandbox.placeOnGrid(x  , y+1, cellType);
+    sandbox.placeOnGrid(x+1, y+1, cellType);
   }
   
-  sandbox.updateGrid();
+  if(!paused) {
+    ticks = (ticks + 1) % 256;
+    gl.uniform1ui(ticksLoc, ticks);
+    sandbox.updateGrid();
+  }
 }
 
 function draw() {
