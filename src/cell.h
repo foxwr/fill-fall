@@ -3,6 +3,8 @@
 
 #include "def.h"
 
+#define SPEC_MASK 0b110000
+
 #define IS_GAS    0b000000
 #define IS_LIQUID 0b010000
 #define IS_POWDER 0b100000
@@ -15,7 +17,10 @@ enum CellType {
 
   CELL_SAND = IS_POWDER,
 
-  CELL_BORDER = IS_SOLID | 15
+  CELL_ROCK = IS_SOLID,
+  CELL_HOLE,
+  CELL_FAUCET,
+  CELL_MIMIC
 };
 
 struct Cell {
