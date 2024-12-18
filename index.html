@@ -4,26 +4,38 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Particle Sandbox</title>
 
+    <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="stylesheet" href="res/style.css">
+    
     <script defer src="res/main.js" type="module"></script>
   </head>
   <body>
-    <canvas id="screen"></canvas>
-    <div id="side">
-      <div class="menu">
-        <button class="pause">Pause</button>
-        <button class="reset">Reset</button>
+    <div class="panels">
+      <div class="side-panel">
+        <div class="picker">
+          <button data-p=" 0">Air</button>
+          <button data-p="32" class="selected">Sand</button>
+          <button data-p="16">Water</button>
+          <button data-p="48">Rock</button>
+          <button data-p="49">Hole</button>
+          <button data-p="50">Faucet</button>
+          <button data-p="51">Mimic</button>
+        </div>
       </div>
-      <div class="picker">
-        <button data-p=" 0">Air</button>
-        <button data-p="32" class="selected">Sand</button>
-        <button data-p="16">Water</button>
-        <button data-p="48">Rock</button>
-        <button data-p="49">Hole</button>
-        <button data-p="50">Faucet</button>
-        <button data-p="51">Mimic</button>
+      <div class="main-panel">
+        <canvas id="screen"></canvas>
+      </div>
+      <div class="sidebar">
+        <div id="tools">
+          <button id="pencil-btn" title="Pencil (B)" class="selected">draw</button>
+        </div>
+        <div id="actions">
+          <button id="pause-btn" title="Pause (P)&#10;Pause the simulation.">pause</button>
+          <button id="reset-btn" title="Clear (Ctrl+N)&#10;Clear the whole canvas.">delete</button>
+        </div>
       </div>
     </div>
   </body>

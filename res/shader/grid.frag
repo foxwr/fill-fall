@@ -4,11 +4,13 @@ precision lowp usampler2D;
 precision mediump float;
 
 in vec2 uv;
-out vec4 fragColor;
 
 uniform uint ticks;
+uniform float time;
 uniform usampler2D grid;
 uniform sampler2D base;
+
+out vec4 fragColor;
 
 void main() {
   uint type = texture(grid, uv).r & 63u;

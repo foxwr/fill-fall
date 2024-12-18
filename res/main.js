@@ -12,7 +12,13 @@ const gridData = new Uint8Array(sandbox.memory.buffer, sandbox.grid, 4 * size * 
 const program = await createProgram("res/shader/grid");
 
 let scale = 1;
-(onresize = () => scale = size / screen.clientHeight)();
+(onresize = resize)();
+
+function resize() {
+  scale = size / screen.clientHeight;
+  gl.viewport(0, 0, screen.clientHeight, screen.clientHeight);
+  screen.width = screen.height = screen.clientHeight;
+}
 
 async function createProgram(shPath) {
   const [vsrc, fsrc] = await Promise.all([
@@ -97,14 +103,12 @@ requestAnimationFrame(draw);
 setInterval(loop, 8);
 let paused = false;
 
-const menu = document.querySelector(".menu");
-menu.querySelector(".pause").onclick = pause;
-menu.querySelector(".reset").onclick = reset;
+const menu = document.querySelector("#actions");
+menu.querySelector("#pause-btn").onclick = pause;
+menu.querySelector("#reset-btn").onclick = reset;
 
 function pause(e) {
   paused = !paused;
-  if(paused) e.target.classList.add("selected");
-  else e.target.classList.remove("selected");
 }
 
 function reset() {
@@ -171,7 +175,11 @@ function loop() {
   }
 }
 
+const timeLoc = gl.getUniformLocation(program, "time");
+let start = Date.now();
+
 function draw() {
+  gl.uniform1f(timeLoc, (Date.now() - start) / 1000);
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, size, size, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, gridData);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   requestAnimationFrame(draw);

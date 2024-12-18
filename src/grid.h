@@ -3,7 +3,7 @@
 
 #include "def.h"
 
-#define SIZE 250
+#define SIZE 256
 
 void placeOnGrid(u32 x, u32 y, u32 type);
 struct Cell getCell(struct Coord crd, u32 x, u32 y);
