@@ -6,7 +6,7 @@
 static int tick = 0;
 
 EXPORT struct Cell grid[SIZE][SIZE];
-EXPORT int getGridSize() { return SIZE; }
+EXPORT int getGridSize(void) { return SIZE; }
 
 struct Cell getCell(struct Coord crd, u32 x, u32 y) {
   x += crd.x;
@@ -38,7 +38,7 @@ EXPORT void placeOnGrid(u32 x, u32 y, u32 type) {
   setCell(crd, 0, 0, cell);
 }
 
-EXPORT void updateGrid() {
+EXPORT void updateGrid(void) {
   tick = !tick;
 
   static u32 ri[SIZE] = { -1 };
