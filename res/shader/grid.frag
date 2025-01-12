@@ -1,33 +1,39 @@
 #version 300 es
 
+#define AIR 0u
+#define TYPE_MASK 0x3Fu
+#define SPEC_MASK 0x30u
+#define SHFT_MASK 0x0Fu
+#define IS_LIQUID 0x10u
+#define TAU 6.2831
+
 precision lowp usampler2D;
 precision mediump float;
 
-in vec2 uv;
+in vec2 UV;
 
 uniform uint ticks;
-uniform float time;
+uniform sampler2D palette;
 uniform usampler2D grid;
-uniform sampler2D base;
 
-out vec4 fragColor;
+out vec4 COLOR;
 
 void main() {
-  uint type = texture(grid, uv).r & 63u;
-  if(type == 0u) discard;
+  uvec4 cell = texture(grid, UV);
 
-  uint isLiquid = uint(((type >> 4) & 3u) == 1u);
+  uint type = cell.x & TYPE_MASK;
+  if(type == AIR) discard;
 
-  uint md = texture(grid, uv).g + (ticks / 8u + uint(uv.y * 12.0 + uv.x * 24.0)) * isLiquid;
-  if((md & 16u) == 16u) md = ~md;
+  uint shift = cell.y & SHFT_MASK;
+  uint species = type & SPEC_MASK;
 
-  float x = float(type & 15u) / 16.0;
-  float y = float(type >> 4) / 4.0;
+  if(species == IS_LIQUID) {
+    float phase = float(ticks + shift) / 16.0 * TAU;
+    shift = uint(8.0 * sin(phase) + 8.0);
+  }
 
-  float var = float(md & 15u) / 15.0;
-
-  vec4 b = texture(base, vec2(x, y));
-  float lum = var * 0.10 + 0.95;
-
-  fragColor = b * lum;
+  vec2 paletteSize = vec2(64, 16);
+  vec2 paletteUV = vec2(type, shift) / paletteSize;
+  
+  COLOR = texture(palette, paletteUV);
 }

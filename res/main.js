@@ -62,7 +62,7 @@ function createVertBuffer(...data) {
   return buffer;
 }
 
-enableVertBuffer("pos", 2);
+enableVertBuffer("VERTEX", 2);
 
 function enableVertBuffer(attr, size) {
   const prog = gl.getParameter(gl.CURRENT_PROGRAM);
@@ -71,11 +71,11 @@ function enableVertBuffer(attr, size) {
   gl.vertexAttribPointer(attrLoc, size, gl.FLOAT, false, 0, 0);
 }
 
-const baseImg = new Image();
-baseImg.src = "res/base.png";
-await new Promise(r => baseImg.onload = r)
+const paletteImg = new Image();
+paletteImg.src = "res/palette.png";
+await new Promise(r => paletteImg.onload = r)
 
-const baseTex = createTex("base", 0, gl.RGBA, gl.RGBA, baseImg.width, baseImg.height, baseImg);
+const paletteTex = createTex("palette", 0, gl.RGBA, gl.RGBA, paletteImg.width, paletteImg.height, paletteImg);
 const gridTex = createTex("grid", 1, gl.RGBA8UI, gl.RGBA_INTEGER, size, size);
 
 function createTex(unif, activeTex, ifmt, fmt, width, height, data) {
@@ -107,7 +107,7 @@ const menu = document.querySelector("#actions");
 menu.querySelector("#pause-btn").onclick = pause;
 menu.querySelector("#reset-btn").onclick = reset;
 
-function pause(e) {
+function pause() {
   paused = !paused;
 }
 
@@ -169,17 +169,13 @@ function loop() {
   }
   
   if(!paused) {
-    ticks = (ticks + 1) % 256;
+    ticks = (ticks + 0.125) % 16;
     gl.uniform1ui(ticksLoc, ticks);
     sandbox.updateGrid();
   }
 }
 
-const timeLoc = gl.getUniformLocation(program, "time");
-let start = Date.now();
-
 function draw() {
-  gl.uniform1f(timeLoc, (Date.now() - start) / 1000);
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, size, size, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, gridData);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   requestAnimationFrame(draw);
