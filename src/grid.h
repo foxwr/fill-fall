@@ -1,12 +1,7 @@
-#ifndef GRID_H
-#define GRID_H
+#pragma once
 
 #include "def.h"
 
-#define SIZE 256
-
-void placeOnGrid(u32 x, u32 y, u32 type);
-struct Cell getCell(struct Coord crd, u32 x, u32 y);
-void setCell(struct Coord crd, u32 x, u32 y, struct Cell cell);
-
-#endif
+struct Cell getCell(u32 crd, i32 x, i32 y);
+void setCell(u32 crd, i32 x, i32 y, struct Cell cell);
+void coordToXY(u32 crd, u32 *x, u32 *y);

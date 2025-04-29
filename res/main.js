@@ -1,23 +1,35 @@
-const sandbox = (await WebAssembly.instantiateStreaming(fetch('res/sandbox.wasm'))).instance.exports;
+import * as sandbox from "./src/sandbox.js";
+import tools from "./src/tools.js";
+import actions, { paused } from "./src/actions.js";
+
+sandbox.init(256, 256);
 
 const screen = document.getElementById("screen");
-const gl = screen.getContext("webgl2");
-
-const size = sandbox.getGridSize();
-gl.viewport(0, 0, size, size);
-screen.width = screen.height = size;
-
-const gridData = new Uint8Array(sandbox.memory.buffer, sandbox.grid, 4 * size * size);
+const gl = screen.getContext("webgl2", { antialias: false });
 
 const program = await createProgram("res/shader/grid");
 
+let offx = 0;
+let offy = 0;
+
+const transformLoc = gl.getUniformLocation(program, "transform");
 let scale = 1;
 (onresize = resize)();
 
 function resize() {
-  scale = size / screen.clientHeight;
-  gl.viewport(0, 0, screen.clientHeight, screen.clientHeight);
-  screen.width = screen.height = screen.clientHeight;
+  screen.width = screen.clientWidth;
+  screen.height = screen.clientHeight;
+  scale = Math.floor(Math.min(
+    screen.width / sandbox.grid.width,
+    screen.height / sandbox.grid.height,
+  ) - 0.1);
+
+  gl.viewport(0, 0, screen.width, screen.height);
+  gl.uniformMatrix3x2fv(transformLoc, false, [
+    scale * sandbox.grid.width / screen.width, 0,
+    0, scale * sandbox.grid.height / screen.height,
+    offx, -offy
+  ]);
 }
 
 async function createProgram(shPath) {
@@ -50,33 +62,12 @@ function compileShader(src, type) {
   return shader;
 }
 
-const vbo = createVertBuffer(
-  [-1, +1], [+1, +1], [-1, -1],
-  [+1, +1], [+1, -1], [-1, -1]
-);
-
-function createVertBuffer(...data) {
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.flat()), gl.STATIC_DRAW);
-  return buffer;
-}
-
-enableVertBuffer("VERTEX", 2);
-
-function enableVertBuffer(attr, size) {
-  const prog = gl.getParameter(gl.CURRENT_PROGRAM);
-  const attrLoc = gl.getAttribLocation(prog, attr);
-  gl.enableVertexAttribArray(attrLoc);
-  gl.vertexAttribPointer(attrLoc, size, gl.FLOAT, false, 0, 0);
-}
-
 const paletteImg = new Image();
 paletteImg.src = "res/palette.png";
 await new Promise(r => paletteImg.onload = r)
 
-const paletteTex = createTex("palette", 0, gl.RGBA, gl.RGBA, paletteImg.width, paletteImg.height, paletteImg);
-const gridTex = createTex("grid", 1, gl.RGBA8UI, gl.RGBA_INTEGER, size, size);
+createTex("palette", 0, gl.RGBA, gl.RGBA, paletteImg.width, paletteImg.height, paletteImg);
+createTex("grid", 1, gl.RG8UI, gl.RG_INTEGER, sandbox.grid.width, sandbox.grid.height);
 
 function createTex(unif, activeTex, ifmt, fmt, width, height, data) {
   gl.activeTexture(gl.TEXTURE0 + activeTex);
@@ -101,44 +92,56 @@ const ticksLoc = gl.getUniformLocation(program, "ticks");
 requestAnimationFrame(draw);
 
 setInterval(loop, 8);
-let paused = false;
-
-const menu = document.querySelector("#actions");
-menu.querySelector("#pause-btn").onclick = pause;
-menu.querySelector("#reset-btn").onclick = reset;
-
-function pause() {
-  paused = !paused;
-}
-
-function reset() {
-  gridData.fill(0);
-}
 
 let active, x, y;
-screen.onmousemove = onmouse;
-screen.onmousedown = onmouse;
-screen.onmouseup = onmouse;
-screen.onmouseout = onmouse;
+screen.addEventListener("pointermove", onmouse, { passive: true });
+screen.addEventListener("pointerdown", onmouse, { passive: true });
+screen.addEventListener("pointerup", onmouse, { passive: true });
+screen.addEventListener("pointerout", onmouse, { passive: true });
 
-const picker = document.querySelector(".picker");
-let cellType = parseInt(picker.querySelector(".selected").getAttribute("data-p"));
-picker.querySelectorAll(`[data-p]`).forEach(e => e.onclick = () => {
-  cellType = parseInt(e.getAttribute("data-p"));
-  picker.querySelector(`.selected`).classList.remove("selected");
-  e.classList.add("selected");
-  e.blur();
-});
+const pickerForm = document.forms.picker;
+let cellType = parseInt(pickerForm.kind.value);
+pickerForm.oninput = () => cellType = parseInt(pickerForm.kind.value);
 
+const toolsForm = document.forms.tools;
+let tool = toolsForm.tool.value;
+toolsForm.oninput = () => tool = toolsForm.tool.value;
+
+const actionsForm = document.forms.actions;
+actionsForm.onclick = e => actions[e.target.getAttribute("data-action")]?.();
+
+let oldx = NaN, oldy = NaN;
 function onmouse(e) {
+  if(e.buttons & 4) {
+    if(isNaN(oldx) || isNaN(oldy)) {
+      oldx = e.offsetX;
+      oldy = e.offsetY;
+    }
+
+    let deltax = e.offsetX - oldx;
+    let deltay = e.offsetY - oldy;
+    
+    offx = Math.min(Math.max(offx + 2 * deltax / screen.width, -1), 1);
+    offy = Math.min(Math.max(offy + 2 * deltay / screen.height, -1), 1);
+    onresize();
+
+    oldx = e.offsetX;
+    oldy = e.offsetY;
+
+    return;
+  } else {
+    oldx = NaN;
+    oldy = NaN;
+  }
+
   let wasActive = active;
   active = e.buttons & 1;
 
   let ox = x;
   let oy = y;
 
-  x = e.offsetX * scale;
-  y = e.offsetY * scale;
+  x = (e.offsetX - screen.width * (offx + 1) / 2) / scale + sandbox.grid.width / 2;
+  y = (e.offsetY - screen.height * (offy + 1) / 2) / scale + sandbox.grid.height / 2;
 
   if(!wasActive || !active) return;
   
@@ -150,33 +153,37 @@ function onmouse(e) {
     let x = ox + dx / steps * i;
     let y = oy + dy / steps * i;
 
-    if(active) {
-      sandbox.placeOnGrid(x  , y  , cellType);
-      sandbox.placeOnGrid(x+1, y  , cellType);
-      sandbox.placeOnGrid(x  , y+1, cellType);
-      sandbox.placeOnGrid(x+1, y+1, cellType);
-    }
+    if(active)
+      tools[tool](x, y, cellType);
   }
 }
 
 let ticks = 0;
 function loop() {
-  if(active) {
-    sandbox.placeOnGrid(x  , y  , cellType);
-    sandbox.placeOnGrid(x+1, y  , cellType);
-    sandbox.placeOnGrid(x  , y+1, cellType);
-    sandbox.placeOnGrid(x+1, y+1, cellType);
-  }
+  if(active)
+    tools[tool](x, y, cellType);
   
   if(!paused) {
     ticks = (ticks + 0.125) % 16;
     gl.uniform1ui(ticksLoc, ticks);
-    sandbox.updateGrid();
+    sandbox.api.update();
   }
 }
 
 function draw() {
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, size, size, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, gridData);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, sandbox.grid.width, sandbox.grid.height, gl.RG_INTEGER, gl.UNSIGNED_BYTE, sandbox.grid.data);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   requestAnimationFrame(draw);
+}
+
+window.oncontextmenu = e => e.preventDefault();
+window.onkeydown = e => {
+  if(actions[e.code]) {
+    e.preventDefault();
+    actions[e.code]();
+  } else if(tools[e.code]) {
+    e.preventDefault();
+    toolsForm.tool.value = e.code;
+    tool = e.code;
+  }
 }

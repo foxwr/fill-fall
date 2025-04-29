@@ -12,15 +12,6 @@
       Let your creativity go wild, press play and let the particle sandbox do the rest.
     ">
 
-    <script type="application/ld+json">
-      {
-        "@context" : "https://schema.org",
-        "@type" : "WebSite",
-        "name" : "Fill & Fall",
-        "url" : "https://fill-fall.foxwr.dev/"
-      }
-    </script>
-
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="stylesheet" href="res/style.css">
     
@@ -28,29 +19,32 @@
   </head>
   <body>
     <div class="panels">
-      <div class="side-panel">
-        <div class="picker">
-          <button data-p=" 0">Air</button>
-          <button data-p="32" class="selected">Sand</button>
-          <button data-p="16">Water</button>
-          <button data-p="48">Rock</button>
-          <button data-p="49">Hole</button>
-          <button data-p="50">Faucet</button>
-          <button data-p="51">Mimic</button>
-        </div>
+      <div class="sidebar">
+        <form id="tools">
+          <input type="radio" name="tool" value="KeyB" title="Brush" data-icon="brush" checked />
+          <input type="radio" name="tool" value="KeyE" title="Eraser" data-icon="ink_eraser" />
+          <input type="radio" name="tool" value="KeyC" title="Cloner" data-icon="valve" />
+          <input type="radio" name="tool" value="KeyG" title="Fill" data-icon="colors">
+        </form>
+        <form id="actions">
+          <input type="button" data-action="Space" title="Pause&#10;Pause the simulation." value="pause" />
+          <input type="button" data-action="Delete" title="Clear&#10;Clear the whole canvas." value="delete" />
+        </form>
       </div>
       <div class="main-panel">
         <canvas id="screen"></canvas>
       </div>
-      <div class="sidebar">
-        <div id="tools">
-          <button id="pencil-btn" title="Pencil" class="selected">draw</button>
-        </div>
-        <div id="actions">
-          <button id="pause-btn" title="Pause&#10;Pause the simulation.">pause</button>
-          <button id="reset-btn" title="Clear&#10;Clear the whole canvas.">delete</button>
-        </div>
-      </div>
+      <form class="side-panel" name="picker">
+        <input type="radio" name="kind" value="32" title="Sand" checked />
+        <input type="radio" name="kind" value="16" title="Water" />
+        <input type="radio" name="kind" value="17" title="Acid" />
+        <input type="radio" name="kind" value="49" title="Rock" />
+        <input type="radio" name="kind" value="50" title="Sink" />
+        <input type="radio" name="kind" value="51" title="Pump" />
+        <input type="radio" name="kind" value="53" title="Mimic" />
+        <input type="radio" name="kind" value="54" title="Bricks">
+        <input type="radio" name="kind" value="55" title="Glass">
+      </form>
     </div>
   </body>
 </html>

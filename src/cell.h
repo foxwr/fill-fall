@@ -1,37 +1,42 @@
-#ifndef CELL_H
-#define CELL_H
+#pragma once
 
 #include "def.h"
 
-#define SPEC_MASK 0b110000
+#define MASK_FAMILY 0b110000
 
-#define IS_GAS    0b000000
-#define IS_LIQUID 0b010000
-#define IS_POWDER 0b100000
-#define IS_SOLID  0b110000
+#define FAMILY_GAS    0b000000
+#define FAMILY_LIQUID 0b010000
+#define FAMILY_POWDER 0b100000
+#define FAMILY_SOLID  0b110000
 
-enum CellType {
-  CELL_AIR = IS_GAS,
+enum CellKind {
+  CELL_AIR = FAMILY_GAS,
   
-  CELL_WATER = IS_LIQUID,
+  CELL_WATER = FAMILY_LIQUID,
+  CELL_ACID,
 
-  CELL_SAND = IS_POWDER,
+  CELL_SAND = FAMILY_POWDER,
 
-  CELL_ROCK = IS_SOLID,
-  CELL_HOLE,
-  CELL_FAUCET,
-  CELL_MIMIC
+  CELL_INVALID = FAMILY_SOLID,
+  CELL_ROCK,
+  CELL_SINK,
+  CELL_PUMP,
+  CELL_CLONER,
+  CELL_MIMIC,
+  CELL_BRICKS,
+  CELL_GLASS,
 };
 
 struct Cell {
-  u8 type : 6;
-  u8 tick : 2;
-  u8 shft : 4;
-  u8 regH : 4;
-  u8 reg1 : 8;
-  u8 reg2 : 8;
+  u8 kind1    : 6;
+  u8 kind2    : 6;
+  u8 variant  : 3;
+  u8 tick     : 1;
 } PACKED;
 
-extern void (*const cellUpdateFnTbl[64])(struct Cell, struct Coord);
+// extern void (*const familyUpdateFnTbl[4])(struct Cell *);
 
-#endif
+extern void (*const cellUpdateFnTbl[64])(struct Cell, u32);
+extern void (*const cellCreateFnTbl[64])(struct Cell *, u32, u32);
+
+struct Cell newCell(u32 kind1, u32 kind2, u32 crd);
