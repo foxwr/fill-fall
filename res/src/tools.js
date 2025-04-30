@@ -17,8 +17,8 @@ function fill(x, y, kind) {
 }
 
 export default {
-  "KeyB": brush,
-  "KeyE": eraser,
-  "KeyC": cloner,
-  "KeyG": fill
+  "KeyB": { fn: brush, move: true, loop: true },
+  "KeyE": { fn: eraser, move: true, loop: true },
+  "KeyC": { fn: cloner, move: true },
+  "KeyG": { fn: fill }
 }

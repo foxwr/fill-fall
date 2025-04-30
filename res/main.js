@@ -137,6 +137,9 @@ function onmouse(e) {
   let wasActive = active;
   active = e.buttons & 1;
 
+  if(!wasActive && active)
+    tools[tool].fn(x, y, cellType);
+
   let ox = x;
   let oy = y;
 
@@ -153,15 +156,15 @@ function onmouse(e) {
     let x = ox + dx / steps * i;
     let y = oy + dy / steps * i;
 
-    if(active)
-      tools[tool](x, y, cellType);
+    if(active && tools[tool].move)
+      tools[tool].fn(x, y, cellType);
   }
 }
 
 let ticks = 0;
 function loop() {
-  if(active)
-    tools[tool](x, y, cellType);
+  if(active && tools[tool].loop)
+    tools[tool].fn(x, y, cellType);
   
   if(!paused) {
     ticks = (ticks + 0.125) % 16;
