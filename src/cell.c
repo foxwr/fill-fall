@@ -92,6 +92,7 @@ void updatePump(struct Cell cell, u32 crd) {
 
 void updateCloner(struct Cell cell, u32 crd) {
   if(cell.kind2 >= FAMILY_SOLID) return;
+  if(rand() & 7) return;
 
   int i = rand() & 3;
   if(getCell(crd, dx[i], dy[i]).kind1 == CELL_AIR)
