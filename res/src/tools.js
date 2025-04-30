@@ -9,7 +9,7 @@ function eraser(x, y) {
 }
 
 function cloner(x, y, kind) {
-  sandbox.api.placeAt(x, y, 0, 51, kind);
+  sandbox.api.placeAt(x, y, 0, 52, kind);
 }
 
 function fill(x, y, kind) {
