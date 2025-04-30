@@ -1,12 +1,5 @@
 #version 300 es
 
-#define KIND(x) ((x) & 0x3Fu)
-#define FAMILY(x) ((x) & 0x30u)
-#define VARIANT(x) ((x) >> 4 & 0x07u)
-
-#define FAM_LIQUID 0x10u
-#define TAU 6.2831
-
 precision lowp usampler2D;
 precision mediump float;
 
@@ -18,20 +11,29 @@ uniform usampler2D grid;
 
 out vec4 COLOR;
 
+const float TAU = 6.2831f;
+const uint FAM_LIQUID = 0x10u;
+const vec2 PAL_SIZE = vec2(64, 16);
+
+struct Cell { uint kind, family, variant; };
+
+Cell raw2cell(uvec4 raw) {
+  return Cell(
+    raw.x & 0x3Fu,
+    raw.x & 0x30u,
+    raw.y >> 3 & 0x0Eu
+  );
+}
+
 void main() {
-  uvec4 cell = texture(grid, UV);
+  uvec4 raw = texture(grid, UV);
+  Cell cell = raw2cell(raw);
 
-  uint kind = KIND(cell.x);
-  uint family = FAMILY(kind);
-  uint variant = VARIANT(cell.y) << 1;
-
-  if(family == FAM_LIQUID) {
-    float phase = float(ticks + variant) / 16.0 * TAU;
-    variant = uint(8.0 * sin(phase) + 8.0);
+  if(cell.family == FAM_LIQUID) {
+    float phase = float(ticks + cell.variant) / 16.0 * TAU;
+    cell.variant = uint(8.0 * sin(phase) + 8.0);
   }
 
-  vec2 paletteSize = vec2(64, 16);
-  vec2 paletteUV = vec2(kind, variant) / paletteSize;
-  
+  vec2 paletteUV = vec2(cell.kind, cell.variant) / PAL_SIZE;
   COLOR = texture(palette, paletteUV);
 }
